@@ -14,38 +14,49 @@ import EnrollmentsRoutes from "./Kambaz/Enrollments/routes.js";
 
 const app = express();
 
-/* ---------------- CORS (must be first) ---------------- */
+/* ---------- Allowed Origins ---------- */
+const allowedOrigins = [
+  process.env.CLIENT_URL, // production frontend e.g. https://kambaz.vercel.app
+  "http://localhost:3000", // dev
+].filter(Boolean);
+
+/* ---------- CORS ---------- */
 app.use(
   cors({
     credentials: true,
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS blocked: " + origin));
+      }
+    },
   })
 );
 
-/* ---------------- Session Config ---------------- */
+/* ---------- Session Config ---------- */
 const sessionOptions = {
   secret: process.env.SESSION_SECRET || "kambaz",
   resave: false,
   saveUninitialized: false,
 };
 
-// Production ONLY: secure cookies
 if (process.env.SERVER_ENV !== "development") {
   sessionOptions.proxy = true;
   sessionOptions.cookie = {
     sameSite: "none",
     secure: true,
-    domain: process.env.SERVER_URL,
+    // domain must NOT include "https://"
+    domain: process.env.SERVER_DOMAIN, // e.g. "mybackend.onrender.com"
   };
 }
 
-// Development: NO cookie settings → secure: false, sameSite: "lax"
 app.use(session(sessionOptions));
 
-/* ---------------- JSON Parsing ---------------- */
+/* ---------- JSON Parsing ---------- */
 app.use(express.json());
 
-/* ---------------- Routes ---------------- */
+/* ---------- Routes ---------- */
 UserRoutes(app, db);
 CourseRoutes(app, db);
 ModulesRoutes(app, db);
@@ -54,7 +65,7 @@ EnrollmentsRoutes(app, db);
 Lab5(app);
 Hello(app);
 
-/* ---------------- Server ---------------- */
+/* ---------- Server ---------- */
 app.listen(process.env.PORT || 4000, () => {
   console.log("Server running");
 });
