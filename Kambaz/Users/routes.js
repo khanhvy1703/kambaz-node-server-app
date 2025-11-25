@@ -6,6 +6,7 @@ export default function UserRoutes(app, db) {
   const deleteUser = (req, res) => {};
   const findAllUsers = (req, res) => {};
   const findUserById = (req, res) => {};
+
   const updateUser = (req, res) => {
     const userId = req.params.userId;
     const userUpdates = req.body;
@@ -18,7 +19,7 @@ export default function UserRoutes(app, db) {
   const signup = (req, res) => {
     const user = dao.findUserByUsername(req.body.username);
     if (user) {
-      res.status(400).json({ message: "Username already in use" });
+      res.status(400).json({ message: "Username already taken" });
       return;
     }
     const currentUser = dao.createUser(req.body);
@@ -38,10 +39,14 @@ export default function UserRoutes(app, db) {
   };
 
   const signout = (req, res) => {
-    req.session.destroy();
-    res.sendStatus(200);
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+        return res.sendStatus(500);
+      }
+      res.sendStatus(200);
+    });
   };
-
 
   const profile = (req, res) => {
     const currentUser = req.session["currentUser"];

@@ -3,6 +3,7 @@ export default function CoursesDao(db) {
   function findAllCourses() {
     return db.courses;
   }
+  
   function findCoursesForEnrolledUser(userId) {
     const { courses, enrollments } = db;
     const enrolledCourses = courses.filter((course) =>
@@ -31,7 +32,7 @@ export default function CoursesDao(db) {
 
   function updateCourse(courseId, courseUpdates) {
     const { courses } = db;
-    const course = courses.find((course) => course._id === courseId);
+    const course = courses.find((c) => c._id === courseId);
     Object.assign(course, courseUpdates);
     return course;
   }

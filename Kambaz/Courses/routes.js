@@ -3,6 +3,7 @@ import EnrollmentsDao from "../Enrollments/dao.js";
 
 export default function CourseRoutes(app, db) {
   const dao = CoursesDao(db);
+
   const findAllCourses = (req, res) => {
     const courses = dao.findAllCourses();
     res.send(courses);
@@ -10,6 +11,7 @@ export default function CourseRoutes(app, db) {
 
   const findCoursesForEnrolledUser = (req, res) => {
     let { userId } = req.params;
+
     if (userId === "current") {
       const currentUser = req.session["currentUser"];
       if (!currentUser) {
@@ -18,6 +20,7 @@ export default function CourseRoutes(app, db) {
       }
       userId = currentUser._id;
     }
+
     const courses = dao.findCoursesForEnrolledUser(userId);
     res.json(courses);
   };
@@ -26,6 +29,10 @@ export default function CourseRoutes(app, db) {
   
   const createCourse = (req, res) => {
     const currentUser = req.session["currentUser"];
+    if (!currentUser) {
+      return res.sendStatus(401);
+    }
+
     const newCourse = dao.createCourse(req.body);
     enrollmentsDao.enrollUserInCourse(currentUser._id, newCourse._id);
     res.json(newCourse);
@@ -42,7 +49,7 @@ export default function CourseRoutes(app, db) {
     const courseUpdates = req.body;
     const status = dao.updateCourse(courseId, courseUpdates);
     res.send(status);
-  }
+  };
 
   app.put("/api/courses/:courseId", updateCourse);
   app.delete("/api/courses/:courseId", deleteCourse);
