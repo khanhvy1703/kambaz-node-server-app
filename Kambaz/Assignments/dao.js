@@ -1,36 +1,42 @@
+import model from "./model.js";
 import { v4 as uuidv4 } from "uuid";
 
-export default function AssignmentsDao(db) {
-  function findAssignmentsForCourse(courseId) {
-    return db.assignments.filter((a) => a.course === courseId);
-  }
+const allowedFields = [
+  "_id",
+  "title",
+  "course",
+  "description",
+  "availableFrom",
+  "dueDate",
+  "points",
+];
 
-  function findAssignmentById(assignmentId) {
-    return db.assignments.find((a) => a._id === assignmentId);
+const clean = (data) => {
+  const result = {};
+  for (const key of allowedFields) {
+    if (data[key] !== undefined) result[key] = data[key];
   }
+  return result;
+};
 
-  function createAssignment(assignment) {
-    const newAssignment = { ...assignment, _id: uuidv4() };
-    db.assignments = [...db.assignments, newAssignment];
-    return newAssignment;
-  }
+export const findAssignmentsForCourse = (courseId) =>
+  model.find({ course: courseId });
 
-  function updateAssignment(assignmentId, updates) {
-    const assignment = db.assignments.find((a) => a._id === assignmentId);
-    Object.assign(assignment, updates);
-    return assignment;
-  }
+export const findAssignmentById = (id) =>
+  model.findById(id);
 
-  function deleteAssignment(assignmentId) {
-    db.assignments = db.assignments.filter((a) => a._id !== assignmentId);
-    return { status: "ok" };
-  }
+export const createAssignment = async (assignment) => {
+  const cleanAssignment = clean(assignment);
 
-  return {
-    findAssignmentsForCourse,
-    findAssignmentById,
-    createAssignment,
-    updateAssignment,
-    deleteAssignment,
-  };
-}
+  cleanAssignment._id = uuidv4();
+
+  return model.create(cleanAssignment);
+};
+
+export const updateAssignment = async (id, updates) => {
+  const cleanUpdates = clean(updates);
+  return model.findByIdAndUpdate(id, cleanUpdates, { new: true });
+};
+
+export const deleteAssignment = (id) =>
+  model.deleteOne({ _id: id });
