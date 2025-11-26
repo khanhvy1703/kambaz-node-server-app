@@ -21,8 +21,8 @@ mongoose.connect(CONNECTION_STRING);
 const app = express();
 
 const allowedOrigins = [
-  process.env.CLIENT_URL, // production frontend e.g. https://kambaz.vercel.app
-  "http://localhost:3000", // dev
+  process.env.CLIENT_URL,
+  "http://localhost:3000",
 ].filter(Boolean);
 
 app.use(
