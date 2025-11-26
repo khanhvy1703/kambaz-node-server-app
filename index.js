@@ -23,6 +23,7 @@ const app = express();
 const allowedOrigins = [
   process.env.CLIENT_URL,
   "http://localhost:3000",
+  "https://kambaz-next-js-a6-mu.vercel.app",
 ].filter(Boolean);
 
 app.use(
