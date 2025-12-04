@@ -2,6 +2,7 @@ import "dotenv/config";
 import session from "express-session";
 import express from "express";
 import cors from "cors";
+import mongoose from "mongoose";
 
 import Hello from "./Hello.js";
 import Lab5 from "./Lab5/index.js";
@@ -11,16 +12,22 @@ import CourseRoutes from "./Kambaz/Courses/routes.js";
 import ModulesRoutes from "./Kambaz/Modules/routes.js";
 import AssignmentsRoutes from "./Kambaz/Assignments/routes.js";
 import EnrollmentsRoutes from "./Kambaz/Enrollments/routes.js";
+import QuizzesRoutes from "./Kambaz/Quizzes/routes.js";
+
+const CONNECTION_STRING =
+  process.env.DATABASE_CONNECTION_STRING ||
+  "mongodb://127.0.0.1:27017/kambaz";
+
+mongoose.connect(CONNECTION_STRING);
 
 const app = express();
 
-/* ---------- Allowed Origins ---------- */
 const allowedOrigins = [
-  process.env.CLIENT_URL, // production frontend e.g. https://kambaz.vercel.app
-  "http://localhost:3000", // dev
+  process.env.CLIENT_URL,
+  "http://localhost:3000", 
+  "https://kambaz-next-js-a6-mu.vercel.app" 
 ].filter(Boolean);
 
-/* ---------- CORS ---------- */
 app.use(
   cors({
     credentials: true,
@@ -30,42 +37,46 @@ app.use(
       } else {
         callback(new Error("CORS blocked: " + origin));
       }
-    },
+    }
   })
 );
 
-/* ---------- Session Config ---------- */
+
 const sessionOptions = {
   secret: process.env.SESSION_SECRET || "kambaz",
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    httpOnly: true,  
+    sameSite: "lax", 
+    secure: false,  
+  },
 };
 
-if (process.env.SERVER_ENV !== "development") {
-  sessionOptions.proxy = true;
+if (process.env.SERVER_ENV === "production") {
+  sessionOptions.proxy = true; 
   sessionOptions.cookie = {
-    sameSite: "none",
-    secure: true,
-    // domain must NOT include "https://"
-    domain: process.env.SERVER_DOMAIN, // e.g. "mybackend.onrender.com"
+    httpOnly: true,
+    sameSite: "none", 
+    secure: true,     
+    domain: process.env.SERVER_DOMAIN 
   };
 }
 
 app.use(session(sessionOptions));
 
-/* ---------- JSON Parsing ---------- */
 app.use(express.json());
 
-/* ---------- Routes ---------- */
+
 UserRoutes(app, db);
 CourseRoutes(app, db);
 ModulesRoutes(app, db);
 AssignmentsRoutes(app, db);
 EnrollmentsRoutes(app, db);
+QuizzesRoutes(app);
 Lab5(app);
 Hello(app);
 
-/* ---------- Server ---------- */
 app.listen(process.env.PORT || 4000, () => {
   console.log("Server running");
 });

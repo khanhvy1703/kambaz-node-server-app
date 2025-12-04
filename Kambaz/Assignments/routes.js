@@ -1,40 +1,35 @@
-import AssignmentsDao from "./dao.js";
+import * as dao from "./dao.js";
 
-export default function AssignmentsRoutes(app, db) {
-  const dao = AssignmentsDao(db);
+export default function AssignmentsRoutes(app) {
+  app.get("/api/courses/:courseId/assignments", async (req, res) => {
+    const assignments = await dao.findAssignmentsForCourse(req.params.courseId);
+    res.json(assignments);
+  });
 
-  const findAssignmentsForCourse = (req, res) => {
-    const { courseId } = req.params;
-    res.json(dao.findAssignmentsForCourse(courseId));
-  };
+  app.get("/api/assignments/:assignmentId", async (req, res) => {
+    const assignment = await dao.findAssignmentById(req.params.assignmentId);
+    res.json(assignment);
+  });
 
-  const findAssignmentById = (req, res) => {
-    const { assignmentId } = req.params;
-    res.json(dao.findAssignmentById(assignmentId));
-  };
-
-  const createAssignment = (req, res) => {
-    const { courseId } = req.params;
-    const assignment = { ...req.body, course: courseId };
-    const newAssignment = dao.createAssignment(assignment);
+  app.post("/api/courses/:courseId/assignments", async (req, res) => {
+    const assignment = {
+      ...req.body,
+      course: req.params.courseId,
+    };
+    const newAssignment = await dao.createAssignment(assignment);
     res.json(newAssignment);
-  };
+  });
 
-  const updateAssignment = (req, res) => {
-    const { assignmentId } = req.params;
-    const updated = dao.updateAssignment(assignmentId, req.body);
+  app.put("/api/assignments/:assignmentId", async (req, res) => {
+    const updated = await dao.updateAssignment(
+      req.params.assignmentId,
+      req.body
+    );
     res.json(updated);
-  };
+  });
 
-  const deleteAssignment = (req, res) => {
-    const { assignmentId } = req.params;
-    const status = dao.deleteAssignment(assignmentId);
+  app.delete("/api/assignments/:assignmentId", async (req, res) => {
+    const status = await dao.deleteAssignment(req.params.assignmentId);
     res.json(status);
-  };
-
-  app.get("/api/courses/:courseId/assignments", findAssignmentsForCourse);
-  app.get("/api/assignments/:assignmentId", findAssignmentById);
-  app.post("/api/courses/:courseId/assignments", createAssignment);
-  app.put("/api/assignments/:assignmentId", updateAssignment);
-  app.delete("/api/assignments/:assignmentId", deleteAssignment);
+  });
 }
