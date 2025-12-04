@@ -7,23 +7,50 @@ export default function QuizzesDao() {
       _id: uuidv4(),
       course: cid,
       title: "New Quiz",
+      description: "",
+
+      type: "Graded Quiz",
+      group: "QUIZZES",
+
+      shuffleAnswers: false,
+      timeLimitEnabled: false,
+      timeLimit: 20,
+
+      multipleAttempts: false,
+      attemptsAllowed: 1,
+
+      showCorrectAnswers: false,
+      accessCode: "",
+
+      oneQuestionAtATime: true,
+      webcamRequired: false,
+      lockQuestions: false,
+
       published: false,
+      points: 0,
+
+      availableAt: null,
+      availableUntil: null,
+      dueDate: null,
+
       questions: [],
     };
     return QuizModel.create(quiz);
   };
 
-  const findQuizzesForCourse = (cid) =>
-    QuizModel.find({ course: cid });
+  const findQuizzesForCourse = (cid) => QuizModel.find({ course: cid });
 
-  const findQuizById = (qid) =>
-    QuizModel.findById(qid);
+  const findQuizById = (qid) => QuizModel.findById(qid);
 
-  const updateQuiz = (qid, quiz) =>
-    QuizModel.updateOne({ _id: qid }, { $set: quiz });
+  const updateQuiz = async (qid, quiz) => {
+    return QuizModel.findByIdAndUpdate(
+      qid,
+      { $set: quiz },
+      { new: true, runValidators: true }
+    );
+  };
 
-  const deleteQuiz = (qid) =>
-    QuizModel.findByIdAndDelete(qid);
+  const deleteQuiz = (qid) => QuizModel.findByIdAndDelete(qid);
 
   const togglePublish = async (qid) => {
     const quiz = await QuizModel.findById(qid);
